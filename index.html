@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Consulta privada de arquivos CDF pelo final do cartão.">
+  <title>Localizador CDF</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="config.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="mark">C</span><span>Localizador <strong>CDF</strong></span></div>
+      <div id="account" class="account" hidden><span id="account-email"></span><button id="logout" type="button" class="text-button">Sair</button></div>
+    </header>
+
+    <main>
+      <section id="setup-view" class="card narrow" hidden>
+        <div class="label">CONFIGURAÇÃO</div><h1>Conecte o armazenamento</h1>
+        <p>Preencha <code>config.js</code> com a URL do projeto e a chave pública do Supabase e publique novamente. Veja o arquivo <code>LEIA-ME.md</code>.</p>
+      </section>
+
+      <section id="login-view" class="card narrow" hidden>
+        <div class="label">ACESSO PRIVADO</div><h1>Entre para consultar os arquivos</h1>
+        <p>Os documentos bancários e o índice ficam protegidos pela sua conta.</p>
+        <form id="login-form" class="stack">
+          <label>E-mail *<input id="email" type="email" autocomplete="username" required></label>
+          <label>Senha *<input id="password" type="password" autocomplete="current-password" required></label>
+          <button id="login-button" class="button primary" type="submit">Entrar</button>
+        </form>
+        <div id="login-status" class="message" role="status" aria-live="polite"></div>
+      </section>
+
+      <div id="workspace" hidden>
+        <div class="intro"><div><div class="label">ARQUIVO DIGITAL</div><h1>Encontre o arquivo de um cartão</h1><p>Pesquise pelo final do cartão e recupere o CDF original quando precisar.</p></div><div class="privacy">Acesso privado</div></div>
+        <div class="grid">
+          <section class="card search-card">
+            <div class="section-top"><span class="step">01</span><h2>Pesquisar cartão</h2></div>
+            <form id="search-form">
+              <label for="digits">Últimos dígitos do cartão *</label>
+              <div class="search-row"><input id="digits" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{4,8}" autocomplete="off" placeholder="Ex.: 1234" required><button class="button primary" type="submit">Buscar</button></div>
+              <p class="hint">Use de 4 a 8 dígitos. No CDF de exemplo, o banco informa apenas os 4 últimos.</p>
+            </form>
+            <div class="divider"></div>
+            <div class="result-heading"><h3>Resultados</h3><span id="result-count" class="small">—</span></div>
+            <div id="results" aria-live="polite"><div class="empty">Digite o final do cartão para consultar os arquivos online.</div></div>
+          </section>
+
+          <section class="card upload-card">
+            <div class="section-top"><span class="step">02</span><h2>Adicionar arquivos</h2></div>
+            <p class="muted">Envie os CDFs recebidos do banco. Depois do envio, ficam disponíveis em qualquer dispositivo com o seu acesso.</p>
+            <div id="drop-zone" class="drop-zone"><div class="upload-icon">▤</div><strong>Selecione uma pasta ou vários arquivos</strong><span>Formatos .cdf e .xml, até 12 MB por arquivo</span><div class="actions"><button id="folder-button" class="button primary" type="button">Selecionar pasta</button><button id="files-button" class="button secondary" type="button">Selecionar arquivos</button></div><input id="folder-input" type="file" webkitdirectory directory multiple hidden><input id="files-input" type="file" accept=".cdf,.xml" multiple hidden></div>
+            <p id="upload-status" class="message" role="status" aria-live="polite">Nenhum envio em andamento.</p>
+            <div id="upload-progress" class="progress" hidden><div id="upload-progress-bar"></div></div>
+          </section>
+        </div>
+        <section class="card library-card"><div class="library-head"><div><h2>Arquivos armazenados</h2><p>Documentos enviados recentemente.</p></div><button id="refresh-button" type="button" class="text-button">Atualizar lista</button></div><div id="file-list" aria-live="polite"><div class="empty">Carregando arquivos...</div></div></section>
+      </div>
+    </main>
+    <footer>Os números completos não são gravados no índice de pesquisa. O arquivo CDF original permanece no armazenamento privado.</footer>
+  </div>
+</body>
+</html>
