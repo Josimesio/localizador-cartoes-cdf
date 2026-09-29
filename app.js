@@ -3,10 +3,17 @@
   const $ = (id) => document.getElementById(id);
   const BUCKET = 'cdf-cartoes';
   const MAX_BYTES = 12 * 1024 * 1024;
+  const COMPANIES = {
+    G1013410: 'ITAU PLUMA',
+    G1013394: 'ITAU BELLO',
+    G1013400: 'ITAU ASTRA',
+    G1013402: 'ITAU MAIS FRANGO'
+  };
   const config = window.CDF_CONFIG;
   let client;
   let currentUser = null;
   let uploading = false;
+  let searchNumber = 0;
   const dateFormatter = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
   const configured = config && /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(config.url || '') &&
@@ -34,10 +41,10 @@
     const info = document.createElement('div');
     const title = document.createElement('div');
     title.className = 'file-name';
-    title.textContent = name;
+    title.textContent = COMPANIES[name.slice(0, 8).toUpperCase()] || 'Empresa não identificada';
     const meta = document.createElement('div');
     meta.className = 'file-meta';
-    meta.textContent = detail;
+    meta.textContent = `${name} · ${detail}`;
     info.append(title, meta);
     return info;
   }
@@ -56,8 +63,10 @@
       $('account-email').textContent = user.email || 'Conta conectada';
       await listFiles();
     } else {
+      searchNumber++;
       $('file-list').replaceChildren();
       $('results').replaceChildren(empty('Entre para pesquisar os arquivos.'));
+      $('result-count').textContent = '—';
     }
   }
 
@@ -214,16 +223,19 @@
   async function search() {
     const digits = $('digits').value.trim();
     if (!/^[0-9]{4,8}$/.test(digits)) return;
+    const requestNumber = ++searchNumber;
     const target = $('results');
     target.replaceChildren(empty('Pesquisando...'));
     const { data, error } = await client.rpc('buscar_arquivos_por_final', { p_final: digits });
+    if (requestNumber !== searchNumber) return;
     if (error) {
       target.replaceChildren(empty(`Falha na pesquisa: ${error.message}`));
       $('result-count').textContent = '—';
       return;
     }
     target.replaceChildren();
-    $('result-count').textContent = `${data.length} ${data.length === 1 ? 'arquivo' : 'arquivos'}`;
+    const occurrences = data.reduce((sum, item) => sum + Number(item.correspondencias), 0);
+    $('result-count').textContent = `${occurrences} ${occurrences === 1 ? 'ocorrência' : 'ocorrências'} em ${data.length} ${data.length === 1 ? 'arquivo' : 'arquivos'}`;
     if (!data.length) { target.append(empty('Nenhum arquivo contém esse final de cartão.')); return; }
     const fragment = document.createDocumentFragment();
     for (const item of data) {
